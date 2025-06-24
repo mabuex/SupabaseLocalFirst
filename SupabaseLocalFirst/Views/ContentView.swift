@@ -54,7 +54,7 @@ struct ContentView: View {
                         .swipeActions(allowsFullSwipe: true) {
                             Button("Delete", systemImage: "trash", role: .destructive) {
                                 Task {
-                                    await deleteTodo(todo)
+                                    // Delete
                                 }
                             }
                             
@@ -116,7 +116,7 @@ struct ContentView: View {
             NavigationLink {
                 TrashView { todo in
                     Task {
-                        await recoverTodo(todo)
+                        
                     }
                 }
             } label: {
@@ -131,9 +131,9 @@ struct ContentView: View {
                 Task {
                     switch action {
                     case .create(let todo):
-                        await createTodo(todo)
+                        print(todo)
                     case .update(let todo):
-                        await updateTodo(todo)
+                        print(todo)
                     }
                 }
             }
@@ -176,17 +176,17 @@ extension ContentView {
             for localTodo in todos where localTodo.syncStatus != .synced {
                 switch localTodo.syncStatus {
                 case .pendingCreate:
-                    await createTodo(localTodo)
+                    print(localTodo)
                 case .pendingUpdate:
-                    await updateTodo(localTodo)
+                    print(localTodo)
                 case .pendingDelete:
-                    await deleteTodo(localTodo)
+                    print(localTodo)
                 case .pendingRecovery:
-                    await recoverTodo(localTodo)
+                    print(localTodo)
                 case .synced:
-                    break
+                    print(localTodo)
                 case .failed:
-                    await resolveTodo(localTodo)
+                    print(localTodo)
                 }
             }
      
@@ -197,7 +197,7 @@ extension ContentView {
         }
     }
     
-    // Delete the local todos from storage after a given time period
+    // Delete the local todos from storage after a time period
     func deleteTodos() {
         // Calculate the cutoff date: 5 days ago
         let deleteDate = Date().addingTimeInterval(-5 * 24 * 60 * 60)
@@ -221,136 +221,7 @@ extension ContentView {
 extension ContentView {
     // Fetch all the remote todos from supabase
     func fetchRemoteTodos() async throws -> [Todo] {
-        return try await client
-            .from("todos")
-            .select()
-            .is("deleted_at", value: nil)
-            .execute()
-            .value
-    }
-    
-    // Fetch single remote todo from supabase
-    func fetchRemoteTodo(_ identifier: UUID) async -> Todo? {
-        return try? await client
-            .from("todos")
-            .select()
-            .eq("id", value: identifier)
-            .single()
-            .execute()
-            .value
-    }
-    
-    // Create new remote todo
-    func createTodo(_ todo: Todo) async {
-        todo.setSyncStatus(.pendingCreate)
-        modelContext.insert(todo)
-        
-        guard isNetworkConnected else { return }
-        
-        do {
-            _ = try await client
-                .from("todos")
-                .insert(todo, returning: .representation)
-                .single()
-                .execute()
-                .value as Todo
-            
-            todo.setSyncStatus(.synced)
-        } catch {
-            todo.setSyncStatus(.failed)
-            errorMessage = error.localizedDescription
-        }
-    }
-    
-    // Update todo
-    func updateTodo(_ todo: Todo) async {
-        guard todo.syncStatus == .synced || todo.syncStatus == .pendingUpdate else { return }
-          
-        todo.setSyncStatus(.pendingUpdate)
-        
-        guard isNetworkConnected else { return }
-        
-        do {
-            _ = try await client
-                .from("todos")
-                .update(todo, returning: .representation)
-                .eq("id", value: todo.identifier)
-                .single()
-                .execute()
-                .value as Todo
-            
-            todo.setSyncStatus(.synced)
-        } catch {
-            todo.setSyncStatus(.failed)
-            errorMessage = error.localizedDescription
-        }
-    }
-    
-    // Delete todo
-    func deleteTodo(_ todo: Todo) async {
-        todo.setSyncStatus(.pendingDelete)
-        
-        guard isNetworkConnected else { return }
-        
-        do {
-            _ = try await client
-                .from("todos")
-                .update(["deleted_at": todo.deletedAt], returning: .representation)
-                .eq("id", value: todo.identifier)
-                .single()
-                .execute()
-                .value as Todo
-            
-            todo.setSyncStatus(.synced)
-        } catch {
-            todo.setSyncStatus(.failed)
-            errorMessage = error.localizedDescription
-        }
-    }
-    
-    // Recover todo
-    func recoverTodo(_ todo: Todo) async {
-        guard todo.syncStatus == .synced || todo.syncStatus == .pendingDelete else { return }
-        
-        todo.setSyncStatus(.pendingRecovery)
-        
-        guard isNetworkConnected else { return }
-        
-        do {
-            _ = try await client
-                .from("todos")
-                .update(todo, returning: .representation)
-                .eq("id", value: todo.identifier)
-                .single()
-                .execute()
-                .value as Todo
-            
-            todo.setSyncStatus(.synced)
-        } catch {
-            todo.setSyncStatus(.failed)
-            errorMessage = error.localizedDescription
-        }
-    }
-    
-    // Resolve todo
-    func resolveTodo(_ todo: Todo) async {
-        guard isNetworkConnected, todo.syncStatus == .failed else { return }
- 
-        // check if remote file exists
-        if let remoteTodo = await fetchRemoteTodo(todo.identifier) {
-            // if the remote todo is newer update local todo
-            if remoteTodo.updatedAt > todo.updatedAt {
-                todo.title = remoteTodo.title
-                todo.isCompleted = remoteTodo.isCompleted
-                todo.updatedAt = remoteTodo.updatedAt
-                todo.setSyncStatus(.synced)
-                return
-            } else {
-                todo.setSyncStatus(.pendingUpdate)
-                await updateTodo(todo)
-            }
-        } else {
-            await createTodo(todo)
-        }
+        return []
     }
 }
+

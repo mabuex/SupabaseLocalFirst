@@ -9,23 +9,14 @@ import Foundation
 import SwiftData
 
 @Model
-final class Todo: Identifiable, Codable, Hashable {
-    enum CodingKeys: String, CodingKey {
-        case identifier = "id"
-        case title
-        case isCompleted
-        case createdAt
-        case updatedAt
-        case deletedAt
-    }
-    
+final class Todo: Identifiable, Hashable {
     @Attribute(.unique) var identifier: UUID
     var title: String
     var isCompleted: Bool
     var createdAt: Date
     var updatedAt: Date
     var deletedAt: Date?
-
+  
     private var syncStatusRawValue: Int = SyncStatus.pendingCreate.rawValue
     
     var syncStatus: SyncStatus {
@@ -41,28 +32,6 @@ final class Todo: Identifiable, Codable, Hashable {
         self.isCompleted = false
         self.createdAt = date
         self.updatedAt = date
-    }
-    
-    init(from decoder: any Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        
-        self.identifier = try container.decode(UUID.self, forKey: .identifier)
-        self.title = try container.decode(String.self, forKey: .title)
-        self.isCompleted = try container.decode(Bool.self, forKey: .isCompleted)
-        self.createdAt = try container.decode(Date.self, forKey: .createdAt)
-        self.updatedAt = try container.decode(Date.self, forKey: .updatedAt)
-        self.deletedAt = try container.decodeIfPresent(Date.self, forKey: .deletedAt)
-    }
-    
-    func encode(to encoder: any Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        
-        try container.encode(identifier, forKey: .identifier)
-        try container.encode(title, forKey: .title)
-        try container.encode(isCompleted, forKey: .isCompleted)
-        try container.encode(createdAt, forKey: .createdAt)
-        try container.encode(updatedAt, forKey: .updatedAt)
-        try container.encode(deletedAt, forKey: .deletedAt)
     }
     
     func setSyncStatus(_ status: SyncStatus) {
@@ -117,3 +86,4 @@ extension Todo {
         .init(title: "Go for a walk")
     ]
 }
+
