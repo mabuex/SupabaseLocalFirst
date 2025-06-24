@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Supabase anon key</key>
+	<string>$(SUPABASE_ANON_KEY)</string>
+	<key>Supabase url</key>
+	<string>$(SUPABASE_URL)</string>
+</dict>
+</plist>
