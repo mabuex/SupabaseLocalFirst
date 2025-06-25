@@ -310,7 +310,7 @@ extension ContentView {
     
     // Recover todo
     func recoverTodo(_ todo: Todo) async {
-        guard todo.syncStatus == .synced || todo.syncStatus == .pendingDelete else { return }
+        guard todo.syncStatus == .synced || todo.syncStatus == .pendingDelete || todo.syncStatus == .failed else { return }
         
         todo.setSyncStatus(.pendingRecovery)
         
